@@ -1,5 +1,4 @@
-; 206528275, 50%
-; 315046128, 50%
+
 .orig x41F4
 GetNum:
 ST R7, GETNUM_R7_SAVE
