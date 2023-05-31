@@ -1,0 +1,116 @@
+; 206528275, 50%
+; 315046128, 50%
+.ORIG x4384
+Calculator:     
+; Arguments: R0, R1 are numbers (by numerical value)
+; Output: The subroutine prints something like "R0(operator)R1=(result)", as seen in the PDF.
+; Your code here. Remember to save the registers that you will use to subroutine-specific labels, and then load them just before the RET command.	
+ST R7, CAL_R7_SAVE
+ST R0, CAL_R0_SAVE
+ST R1, CAL_R1_SAVE 
+ST R2, CAL_R2_SAVE ;WHEN WE CALL DIFFERENT SABROUTINES, THESE REGISTERS WILL HAVE NEW VALUES, WE DON'T WANT TO LOSE THE PREVIOUS VALUES.
+ST R3, CAL_R3_SAVE 
+ST R4, CAL_R4_SAVE ;THIS REGISTER WILL HOLD THE ASCII VALUE OF THE CURRENT OPERATION- FOR PRINT PURPOSES.
+
+ADD R2, R0, #0  ;WE'LL SAVE THE VALUE OF R0 HERE SINCE IT'S GONNA BE OVERWRRITEN FOR PRINT USE.
+LEA R0, START_MESSAGE
+PUTS 
+
+GETC
+OUT
+ADD R4, R0, #0 ; R4 HOLD THE OPERATION ASCII.
+LD R0, NEW_LINE 
+OUT ;PRINT A NEW LINE 
+ADD R0, R2, #0 ; WE RESTORE THE VALUE OF RECEIVED R0 BACK.
+;WE CHECK THE ARITHMETIC OPERATION. 
+LD R3, MUL_ASCII
+ADD R3, R4, R3 
+BRz MUL 
+
+LD R3, DIV_ASCII
+ADD R3, R4, R3
+BRz DIV 
+
+LD R3, EXP_ASCII
+ADD R3, R4, R3
+BRz EXP 
+
+LD R3, MINUS_ASCII
+ADD R3, R4, R3 
+BRz MINUS 
+
+ADD:
+AND R2, R2, #0
+ADD R2, R0, R1
+BR PRINT_EQUATION ;R0+R1=R2 
+
+	MUL:
+LD R3, MUL_SAB
+JSRR R3 
+BR PRINT_EQUATION ;R0*R1=R2
+
+	DIV: 
+LD R3, DIV_SAB
+JSRR R3
+BR PRINT_EQUATION ;R0/R1=R2 
+
+	EXP:
+LD R3, EXP_SAB
+JSRR R3
+BR PRINT_EQUATION ;R0^R1=R2 
+
+	MINUS: 
+NOT R1, R1 
+ADD R1, R1, #1 ;R1=-R1
+ADD R2, R0, R1 ;R2=R0-R1 
+NOT R1, R1
+ADD R1, R1, #1  ;RESTORE THE ORIGINAL VALUE OF R1 
+BR PRINT_EQUATION ; R0-R1=R2 
+
+
+	PRINT_EQUATION:
+LD R3, PRINT_NUM ;R3= THE ADDRESS OF PRINT_NUM SABROUTINE, R0=THE FIRST RECEIVED NUMBER.
+JSRR R3 ;PRINTS THE FIRST NUMBER.
+ADD R0, R4, #0 ; CURRENT R0 HOLDS THE ASCII VALUE OF THE OPERATION.
+OUT ;PRINTS THE OPERATION SIGN. 
+ADD R0, R1, #0 ; CURRENT R0= THE SECOND RECEIVED NUM.
+JSRR R3 ;PRINTS THE SECOND NUMBER.
+LD R0, EQUALL_ASCII ;CURRENT R0 HOLDS THE ASCII VALUE OF "=".
+OUT ;PRINTS "=".
+ADD R0, R2, #0 ; R0=THE RESULT.
+JSRR R3 ;PRINTS THE RESULT.
+
+	FINISH:
+LD R7, CAL_R7_SAVE
+LD R0, CAL_R0_SAVE
+LD R1, CAL_R1_SAVE
+LD R2, CAL_R2_SAVE
+LD R3, CAL_R3_SAVE
+LD R4, CAL_R4_SAVE 	
+RET   
+
+CAL_R7_SAVE .fill #0
+CAL_R0_SAVE .fill #0
+CAL_R1_SAVE .fill #0
+CAL_R2_SAVE .fill #0
+CAL_R3_SAVE .fill #0
+CAL_R4_SAVE .fill #0
+
+MUL_SAB    .fill X4000
+DIV_SAB    .fill X4064
+EXP_SAB    .fill X40C8	
+GET_NUM    .fill x41F4
+PRINT_NUM .fill x4320 
+
+MUL_ASCII    .fill #-42
+DIV_ASCII    .fill #-47
+EXP_ASCII    .fill #-94 
+MINUS_ASCII  .fill #-45
+EQUALL_ASCII .fill #61
+NEW_LINE     .fill #10
+START_MESSAGE    .stringz "Enter an arithmetic operation: "	
+; Put your various labels here, between RET and .END.
+; Remember to write comments that thoroughly explain everything you do - this is assembly code, not Python or C! It's hard to follow otherwise.	
+
+; Make sure to properly write your real ID at the top of this asm file, don't just leave the default values there!
+.end
